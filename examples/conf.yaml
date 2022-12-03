@@ -1,0 +1,12 @@
+testServer:
+  Name: apiDiscovery
+  ListenOn: 0.0.0.0:8080
+  Timeout: 10000
+  Etcd:
+    Hosts: this.Etcd.Hosts
+    Key: pdftodocx.rpc
+  Consul:
+    Servers: this.Consul.Servers
+Consul:
+  Servers:
+    - "http://127.0.0.1:8500"
