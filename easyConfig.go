@@ -81,6 +81,7 @@ func (ec *EasyConfig) Load() error {
 		n.LogDir = c.LogDir
 		n.CacheDir = c.CacheDir
 		n.LogLevel = c.LogLevel
+		ec.NacosConf.Host = n.Host
 		ec.confObj = n
 	}
 	err := ec.confObj.Load()
