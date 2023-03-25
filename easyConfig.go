@@ -3,127 +3,92 @@ package easyConfig
 import (
 	"encoding/json"
 	"github.com/voyager-hang/go-easy-config/cast"
-	"gopkg.in/yaml.v3"
-	"log"
-	"os"
+	"github.com/voyager-hang/go-easy-config/file_conf"
+	"github.com/voyager-hang/go-easy-config/nacos_conf"
+	"github.com/voyager-hang/go-easy-config/tool"
 	"reflect"
 	"strings"
 	"time"
 )
 
-type EasyConfig struct {
-	configPaths       []string
-	configName        []string
-	configExt         []string
-	configFilePath    []string
-	configFileContent map[string][]byte
-	config            map[string]interface{}
+type ConfigType string
+
+const (
+	ConfigTypeFile  ConfigType = "file"
+	ConfigTypeNacos ConfigType = "nacos"
+)
+
+type EasyConfInter interface {
+	Load() error
+	GetConfig() map[string]interface{}
 }
 
-func New() *EasyConfig {
+type NacosConf struct {
+}
+
+type EasyConfig struct {
+	configType ConfigType
+	FileConf   file_conf.FileConfBox
+	NacosConf  nacos_conf.ConfBox
+	confObj    EasyConfInter
+	config     map[string]interface{}
+}
+
+func New(confType ...ConfigType) *EasyConfig {
 	ec := new(EasyConfig)
-	ec.configName = []string{}
-	ec.configPaths = []string{}
-	ec.configExt = []string{}
-	ec.configFilePath = []string{}
-	ec.configFileContent = map[string][]byte{}
+	ct := ConfigTypeFile
+	if len(confType) > 0 {
+		ct = confType[0]
+	}
+	ec.configType = ct
 	ec.config = make(map[string]interface{})
 	return ec
 }
 
-func (ec *EasyConfig) AddConfigName(cn ...string) {
-	for _, v := range cn {
-		n := v
-		if strings.Contains(v, ".") {
-			nArr := strings.Split(v, ".")
-			if !inArray(nArr[len(nArr)-1], ec.configExt) {
-				ec.configExt = append(ec.configExt, nArr[len(nArr)-1])
-			}
-			extLen := strings.Count(nArr[len(nArr)-1], "") + 1
-			n = v[:strings.Count(v, "")-extLen]
-		}
-		if !inArray(n, ec.configName) {
-			ec.configName = append(ec.configName, n)
-		}
-	}
+func (ec *EasyConfig) SetType(confType ConfigType) {
+	ec.configType = confType
+}
+func (ec *EasyConfig) SetFileConf(fc file_conf.FileConfBox) {
+	ec.FileConf = fc
 }
 
-func (ec *EasyConfig) AddConfigPaths(cp ...string) {
-	for _, v := range cp {
-		if strings.HasPrefix(v, "./") {
-			v = strings.TrimRight(v[2:], "/")
-		}
-		if v == "." {
-			v = ""
-		}
-		if !inArray(v, ec.configPaths) {
-			ec.configPaths = append(ec.configPaths, v)
-		}
-	}
+func (ec *EasyConfig) SetNacosConf(nc nacos_conf.ConfBox) {
+	ec.NacosConf = nc
 }
 
-func (ec *EasyConfig) AddConfigExt(ce ...string) {
-	for _, v := range ce {
-		if !inArray(v, ec.configExt) {
-			ec.configExt = append(ec.configExt, v)
+func (ec *EasyConfig) Load() error {
+	switch ec.configType {
+	case ConfigTypeFile:
+		f := file_conf.New()
+		if ec.FileConf.ConfigPaths != nil {
+			f.AddConfigPaths(ec.FileConf.ConfigPaths...)
 		}
-	}
-}
-
-func (ec *EasyConfig) Load() {
-	if len(ec.configPaths) == 0 {
-		log.Fatalln("configPaths is empty")
-	}
-	if len(ec.configName) == 0 {
-		log.Fatalln("configName is empty")
-	}
-	if len(ec.configExt) == 0 {
-		log.Fatalln("configExt is empty")
-	}
-	for _, vp := range ec.configPaths {
-		if vp != "" {
-			vp += "/"
+		if ec.FileConf.ConfigName != nil {
+			f.AddConfigName(ec.FileConf.ConfigName...)
 		}
-		for _, vn := range ec.configName {
-			vn += "."
-			for _, ve := range ec.configExt {
-				ec.configFilePath = append(ec.configFilePath, vp+vn+ve)
-			}
+		if ec.FileConf.ConfigExt != nil {
+			f.AddConfigExt(ec.FileConf.ConfigExt...)
 		}
+		ec.confObj = f
+	case ConfigTypeNacos:
+		n := nacos_conf.New()
+		c := ec.NacosConf
+		n.Host = c.Host
+		n.HostYaml = c.HostYaml
+		n.ConfInfo = c.ConfInfo
+		n.TimeoutMs = c.TimeoutMs
+		n.NotLoadCacheAtStart = c.NotLoadCacheAtStart
+		n.LogDir = c.LogDir
+		n.CacheDir = c.CacheDir
+		n.LogLevel = c.LogLevel
+		ec.confObj = n
 	}
-	// 读取文件内容
-	nowPath := getPwd()
-	for _, v := range ec.configFilePath {
-		readPath := nowPath + "/" + v
-		if exists(readPath) && isFile(readPath) {
-			content, err := os.ReadFile(readPath)
-			if err != nil {
-				log.Fatalln("read :", v, err)
-			}
-			ec.configFileContent[v] = content
-			ec.setConfig(content)
-		}
-	}
-	ec.setConfigLink()
-}
-
-func (ec *EasyConfig) setConfig(content []byte) {
-	confMap := make(map[string]interface{})
-	err := yaml.Unmarshal(content, &confMap)
+	err := ec.confObj.Load()
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
-	for ck, cm := range confMap {
-		ec.config[ck] = cm
-	}
-}
-
-func (ec *EasyConfig) setConfigLink() {
-	for _, key := range ec.AllKeys() {
-		if strings.HasPrefix(ec.GetString(key), "this.") {
-			ec.Set(key, ec.Get(ec.GetString(key)[5:]))
-		}
-	}
+	ec.config = ec.confObj.GetConfig()
+	return nil
 }
 
 func (ec *EasyConfig) Find(key string) *EasyConfig {
@@ -189,11 +154,11 @@ func (ec *EasyConfig) IsSet(key string) bool {
 
 func (ec *EasyConfig) Set(key string, value interface{}) {
 	// If alias passed in, then set the proper override
-	value = toCaseInsensitiveValue(value)
+	value = tool.ToCaseInsensitiveValue(value)
 
 	path := strings.Split(key, ".")
 	lastKey := path[len(path)-1]
-	deepestMap := deepSearch(ec.config, path[0:len(path)-1])
+	deepestMap := tool.DeepSearch(ec.config, path[0:len(path)-1])
 
 	// set innermost value
 	deepestMap[lastKey] = value
