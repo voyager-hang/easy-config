@@ -1,6 +1,6 @@
 module github.com/voyager-hang/go-easy-config
 
-go 1.17
+go 1.18
 
 require (
 	github.com/nacos-group/nacos-sdk-go v1.1.4

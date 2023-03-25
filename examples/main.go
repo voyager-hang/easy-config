@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	easyConfig "github.com/voyager-hang/go-easy-config"
 	"github.com/voyager-hang/go-easy-config/nacos_conf"
 )
@@ -24,16 +23,16 @@ func main() {
 	ec := easyConfig.New()
 	ec.SetType(easyConfig.ConfigTypeNacos)
 	ec.SetNacosConf(nacos_conf.ConfBox{
-		Host: []constant.ServerConfig{
-			constant.ServerConfig{
-				IpAddr: "127.0.0.1",
-				Port:   8848,
-			},
-		},
+		//Host: []constant.ServerConfig{
+		//	constant.ServerConfig{
+		//		IpAddr: "127.0.0.1",
+		//		Port:   8848,
+		//	},
+		//},
 		HostYaml: "./config/nacos.yaml",
 		ConfInfo: []nacos_conf.ConfInfo{
 			nacos_conf.ConfInfo{
-				Namespace: "575856a7-be79-4142-a289-b013a9dcfcdf",
+				//Namespace: "575856a7-be79-4142-a289-b013a9dcfcdf",
 				ConfKey: []nacos_conf.ConfKey{
 					nacos_conf.ConfKey{
 						Group: "TOKER_GROUP",
