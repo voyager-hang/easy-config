@@ -1,9 +1,10 @@
 package nacos_conf
 
 import (
-	"github.com/nacos-group/nacos-sdk-go/clients"
-	"github.com/nacos-group/nacos-sdk-go/common/constant"
-	"github.com/nacos-group/nacos-sdk-go/vo"
+	"fmt"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/voyager-hang/go-easy-config/cast"
 	"github.com/voyager-hang/go-easy-config/tool"
 	"gopkg.in/yaml.v3"
@@ -95,6 +96,7 @@ func (n *NacosConf) Load() error {
 		}
 		cont, err := n.getContent(v)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 		content += cont
