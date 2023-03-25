@@ -92,14 +92,13 @@ func (ec *EasyConfig) Load() error {
 }
 
 func (ec *EasyConfig) Find(key string) *EasyConfig {
-	findV := New()
+	findV := ec
 	data := ec.Get(key)
 	if data == nil {
 		return nil
 	}
 
 	if reflect.TypeOf(data).Kind() == reflect.Map {
-		findV = ec
 		findV.config = cast.ToStringMap(data)
 		return findV
 	}
