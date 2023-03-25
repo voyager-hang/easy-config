@@ -93,6 +93,7 @@ func (ec *EasyConfig) Load() error {
 	}
 	if ec.configType == ConfigTypeNacos {
 		ec.NacosConf.Host = ec.nacosConfObj.Host
+		ec.NacosConf.DefNamespace = ec.nacosConfObj.DefNamespace
 	}
 	ec.config = ec.confObj.GetConfig()
 	return nil
