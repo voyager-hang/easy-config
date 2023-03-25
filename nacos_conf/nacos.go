@@ -18,7 +18,8 @@ type nHost struct {
 	Port        uint64 `yaml:"Port"`
 }
 type nacosConf struct {
-	Host []nHost `yaml:"Host"`
+	Host      []nHost `yaml:"Host"`
+	Namespace string  `yaml:"Namespace"`
 }
 
 type ConfKey struct {
@@ -35,6 +36,7 @@ type ConfBox struct {
 	Host                []constant.ServerConfig
 	HostYaml            string
 	ConfInfo            []ConfInfo
+	DefNamespace        string
 	TimeoutMs           uint64
 	NotLoadCacheAtStart bool
 	LogDir              string
@@ -80,11 +82,17 @@ func (n *NacosConf) Load() error {
 						})
 					}
 				}
+				if confData.Namespace != "" {
+					n.DefNamespace = confData.Namespace
+				}
 			}
 		}
 	}
 	var content string
 	for _, v := range n.ConfInfo {
+		if v.Namespace == "" {
+			v.Namespace = n.DefNamespace
+		}
 		cont, err := n.getContent(v)
 		if err != nil {
 			return err

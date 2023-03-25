@@ -3,3 +3,4 @@ Host:
     ContextPath: ''
     IpAddr: '127.0.0.1'
     Port: 8848
+Namespace: 575856a7-be79-4142-a289-b013a9dcfcdf
