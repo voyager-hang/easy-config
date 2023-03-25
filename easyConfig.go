@@ -99,6 +99,7 @@ func (ec *EasyConfig) Find(key string) *EasyConfig {
 	}
 
 	if reflect.TypeOf(data).Kind() == reflect.Map {
+		findV = ec
 		findV.config = cast.ToStringMap(data)
 		return findV
 	}
