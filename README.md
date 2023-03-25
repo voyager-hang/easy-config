@@ -5,7 +5,7 @@
 大部分代码来自 [viper](github.com/spf13/viper)
 本来用viper 他key转小写了没办法，只能自己造轮子了
 
->fike支持读取多文件，多目录
+>file支持读取多文件，多目录
 ```go
     ec := easyConfig.New()
     ec.SetType(easyConfig.ConfigTypeFile)
