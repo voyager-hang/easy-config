@@ -27,11 +27,13 @@ type NacosConf struct {
 }
 
 type EasyConfig struct {
-	configType ConfigType
-	FileConf   file_conf.FileConfBox
-	NacosConf  nacos_conf.ConfBox
-	confObj    EasyConfInter
-	config     map[string]interface{}
+	configType   ConfigType
+	FileConf     file_conf.FileConfBox
+	NacosConf    nacos_conf.ConfBox
+	confObj      EasyConfInter
+	nacosConfObj *nacos_conf.NacosConf
+	fileConfObj  *file_conf.FileConf
+	config       map[string]interface{}
 }
 
 func New(confType ...ConfigType) *EasyConfig {
@@ -70,6 +72,7 @@ func (ec *EasyConfig) Load() error {
 			f.AddConfigExt(ec.FileConf.ConfigExt...)
 		}
 		ec.confObj = f
+		ec.fileConfObj = f
 	case ConfigTypeNacos:
 		n := nacos_conf.New()
 		c := ec.NacosConf
@@ -81,12 +84,15 @@ func (ec *EasyConfig) Load() error {
 		n.LogDir = c.LogDir
 		n.CacheDir = c.CacheDir
 		n.LogLevel = c.LogLevel
-		ec.NacosConf.Host = n.Host
 		ec.confObj = n
+		ec.nacosConfObj = n
 	}
 	err := ec.confObj.Load()
 	if err != nil {
 		return err
+	}
+	if ec.configType == ConfigTypeNacos {
+		ec.NacosConf.Host = ec.nacosConfObj.Host
 	}
 	ec.config = ec.confObj.GetConfig()
 	return nil

@@ -62,5 +62,6 @@ func main() {
 	if err != nil {
 		return
 	}
+	ec = ec.Find("socketIM")
 	fmt.Println(ec.GetAll())
 }
