@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// file
-	ec := easyConfig.New()
+	//ec := easyConfig.New()
 	//ec.SetType(easyConfig.ConfigTypeFile)
 	//ec.SetFileConf(file_conf.FileConfBox{
 	//	ConfigPaths: []string{".", "./config", "./bbb/ddd/"},
@@ -21,6 +21,7 @@ func main() {
 	//}
 	//fmt.Println(ec.GetAll())
 
+	ec := easyConfig.New()
 	ec.SetType(easyConfig.ConfigTypeNacos)
 	ec.SetNacosConf(nacos_conf.ConfBox{
 		Host: []constant.ServerConfig{
